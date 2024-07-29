@@ -1,0 +1,24 @@
+services:
+  ## Typesense Dashboard
+  example_typesense_dashboard:
+    image: ghcr.io/bfritscher/typesense-dashboard:latest
+    container_name: ec_typesense_dashboard
+    ports:
+      - "8100:80"
+    volumes:
+      - ./docker/data/typesense/dashboard.config.json:/app/config.json
+    networks:
+      - example_network
+
+  ## Test Database
+  example_db_test:
+    image: postgres:16-alpine
+    container_name: example_db_test
+    volumes:
+      - ./docker/data/postgres_test:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=equipclick_test
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    networks:
+      - example_network

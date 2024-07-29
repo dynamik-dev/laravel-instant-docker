@@ -1,0 +1,58 @@
+services:
+    example_app:
+        container_name: example_app
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: ${DOCKER_TARGET:-production}
+        volumes:
+            - .:/app
+        depends_on:
+            - example_db
+            - example_typesense
+            - example_redis
+        ports:
+            - "8000:8000"
+        networks:
+            - example_network
+
+    example_db:
+        image: postgres:16-alpine
+        container_name: example_db
+        volumes:
+            - ./docker/data/postgres:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=${DB_DATABASE:-example_db}
+            - POSTGRES_USER=${DB_USER:-root}
+            - POSTGRES_PASSWORD=${DB_PASSWORD:-root}
+        networks:
+            - example_network
+
+    ## Search Index
+    example_typesense:
+        image: typesense/typesense:26.0
+        container_name: example_typesense
+        ports:
+            - "8108:8108"
+        volumes:
+            - ./docker/data/typesense:/data
+        environment:
+            TYPESENSE_DATA_DIR: /data
+            TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-xyz}
+            TYPESENSE_BIND_ADDRESS: 0.0.0.0
+        networks:
+            - example_network
+
+    ## Cache & Queue
+    example_redis:
+        image: redis:7.2.5-alpine3.20
+        container_name: example_redis
+        volumes:
+            - ./docker/data/redis:/data
+        command: redis-server
+        networks:
+            - example_network
+
+networks:
+    example_network:
+        driver: bridge
